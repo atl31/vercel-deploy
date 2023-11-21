@@ -7,21 +7,20 @@ on:
     branches:
       - main
 jobs:
-        Install-PNPM:
-          runs-on: ubuntu-20.04
-          steps:
-          - uses: actions/checkout@v3
-          - name: Install pnpm
-            run: npm install -g pnpm
-          - name: Cache pnpm
-            uses: actions/cache@v2
-            with:
-              path: ~/.npm-global
-              key: pnpm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          - name: Export pnpm PATH
-            run: echo "::set-env name=PATH::$(npm prefix -g)/bin:$PATH"
-      
-        Deploy-Production:
+  Install-PNPM:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install pnpm
+      run: npm install -g pnpm
+    - name: Cache pnpm
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm-global
+        key: pnpm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+    - name: Export pnpm PATH
+      run: echo "::set-env name=PATH::$(npm prefix -g)/bin:$PATH"
+  Deploy-Production:
           runs-on: ubuntu-20.04
           steps:
             - uses: actions/checkout@v2
