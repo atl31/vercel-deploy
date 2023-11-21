@@ -1,52 +1,64 @@
-name: Vercel Production Deployment
+name: Vercel Production Deployment 🚀
+
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
 on:
   push:
     branches:
       - main
+
 jobs:
-  Deploy-Production:
+  Setup-and-Install:
     runs-on: ubuntu-20.04
+    outputs:
+      cache-key: ${{ steps.cache-pnpm.outputs.cache-key }}
     steps:
-      - name: Checkout
+      - name: Checkout Repository 📁
         uses: actions/checkout@v3
 
-      - name: Install Node.js
+      - name: Install Node.js 🟢
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - uses: pnpm/action-setup@v2
-        name: Install pnpm
+      - name: Install pnpm 📦
+        uses: pnpm/action-setup@v2
         with:
           version: 8
-          run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - uses: actions/cache@v3
-        name: Setup pnpm cache
+      - name: Cache pnpm Store 🏎️
+        id: cache-pnpm
+        uses: actions/cache@v3
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          path: ${{ github.workspace }}/pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
 
-      - name: Install dependencies
-        run: pnpm install --prod
-      - uses: actions/checkout@v2
-      - name: Install Vercel CLI
+      - name: Install Dependencies 💾
+        run: pnpm install
+
+  Deploy-Production:
+    needs: Setup-and-Install
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Repository 📁
+        uses: actions/checkout@v3
+
+      - name: Download pnpm Cache 🏎️
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/pnpm-store
+          key: ${{ needs.Setup-and-Install.outputs.cache-key }}
+
+      - name: Install Vercel CLI 🔧
         run: pnpm install --global vercel@latest
-      - name: Pull Vercel Environment Information
+
+      - name: Pull Vercel Environment Information 🌐
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Build Project Artifacts
+
+      - name: Build Project Artifacts 🏗️
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy Project Artifacts to Vercel
+
+      - name: Deploy to Vercel 🚀
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-    
-      
